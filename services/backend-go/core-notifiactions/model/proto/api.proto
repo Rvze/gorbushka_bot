@@ -1,0 +1,30 @@
+syntax = "proto3";
+package proto;
+option go_package = "proto/";
+
+message Item {
+
+   enum ModelEnum {
+        IPHONE = 0;
+        AIRPODS = 1;
+   }
+
+   enum CountryEnum {
+        USA = 0;
+        RUSSIA = 1;
+   }
+
+   enum EventEnum {
+        DELETE  = 0;
+	    INSERT  = 1;
+	    UPDATE  = 2;
+	    GET     = 3;
+   }
+
+   ModelEnum ModelType = 1;
+   string ModelId = 2;
+   string Supplier = 3;
+   CountryEnum Country = 4;
+   string Price = 5;
+   EventEnum EventType = 6;
+}

@@ -1,0 +1,42 @@
+SUPPLIER_PORT: 8084
+PORT: 8085
+server:
+  port: ${PORT}
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://rc1b-a91wke62kjgj13zf.mdb.yandexcloud.net:6432/makarov-n?targetServerType=master&ssl=true&sslmode=verify-full&currentSchema=rbdip
+    username: nmakarov
+    password: makarovnurgun
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 2000
+            readTimeout: 2000
+            loggerLevel: full
+
+telegram:
+  gorbushka:
+    # RESELLER
+    #  dev: https://t.me/gotbushka_dev_bot
+    reseller-token: 5983342496:AAHYn3lJYz41_RZorCqALMeO6gJKmFgkLpI
+
+    #SUPPLIER
+    # dev: https://t.me/gorbushka_supplier_dev_bot
+    supplier-token: 6290579073:AAGP8ucmWx6-IvG-Wh4Ws7SPui8XpqF5kEM
+
+    # ADMIN
+    # dev: https://t.me/gorbushka_admin_dev_bot
+    admin-token: 6180125391:AAHoYg-jIjLy0Qvhs8F8bOT6QPbHYqyQ95Y
+
+clients:
+  core-supplier:
+    url: http://localhost:${SUPPLIER_PORT}
+
+feature-flags:
+  notify-admins.enabled: true

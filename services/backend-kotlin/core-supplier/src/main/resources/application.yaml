@@ -1,0 +1,11 @@
+server:
+  port: 8081
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://c-c9qikb36ojt5s6c7vpfo.rw.mdb.yandexcloud.net:6432/tsypk
+    username: tsypk
+    password: 15.Aleksei

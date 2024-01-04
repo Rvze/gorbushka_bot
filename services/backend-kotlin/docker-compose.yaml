@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  core-supplier:
+    container_name: core-supplier
+    restart: always
+    build:
+      context: ./core-supplier
+    ports:
+      - "8081:8081"
+  core-client:
+    container_name: core-client
+    restart: always
+    build:
+      context: ./core-client
+    ports:
+      - "8082:8082"
+    depends_on:
+      - core-supplier

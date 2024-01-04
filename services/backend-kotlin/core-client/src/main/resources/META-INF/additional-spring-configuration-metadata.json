@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "telegram.gorbushka.supplier-token",
+      "type": "java.lang.String",
+      "description": "Description for telegram.gorbushka.supplier-token."
+  }
+] }

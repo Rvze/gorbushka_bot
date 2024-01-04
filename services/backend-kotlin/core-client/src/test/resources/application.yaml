@@ -1,0 +1,42 @@
+server:
+  port: 8082
+
+spring:
+  profiles:
+    active: "test"
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://c-c9qikb36ojt5s6c7vpfo.rw.mdb.yandexcloud.net:6432/tsypk
+    username: tsypk
+    password: 15.Aleksei
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 2000
+            readTimeout: 2000
+            loggerLevel: full
+
+telegram:
+  gorbushka:
+    # RESELLER
+    #  t.me/theonlyonerf_bot
+    reseller-token: 5631332290:AAEwDbDLhEjaKTf2LLUu0_-1EafMll-zkJI
+
+    #SUPPLIER
+    # t.me/theonlyonerf_supplier_bot
+    supplier-token: 5694874985:AAGT94eiv4n36FKSY9Ja8mE1s9_u5VDOgtU
+
+    # ADMIN
+    # t.me/TheOneAndOnlyAdminBot
+    admin-token: 5602093970:AAGBvsneVGoT9-HBfvlvXt272WV7x04jSWk
+
+clients:
+  core-supplier:
+    url: http://localhost:8081
+
+feature-flags:
+  notify-admins.enabled: false
