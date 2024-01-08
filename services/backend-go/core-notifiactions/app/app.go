@@ -33,7 +33,7 @@ func Start() {
 }
 
 func initDB() *pgxpool.Pool {
-	dbUrl := "postgres://" + config.GetDBUser() + ":" + config.GetDBPassword() + "@" + config.GetDBHost() + ":" + config.GetDBPort() + "/tsypk"
+	dbUrl := "postgres://" + config.GetDBUser() + ":" + config.GetDBPassword() + "@" + config.GetDBHost() + ":" + config.GetDBPort() + "/nmakarov"
 	pool, err := pgxpool.Connect(context.Background(), dbUrl)
 	if err != nil {
 		_, err := fmt.Fprintf(os.Stderr, "Unnable to connect to database: %v\n", err)

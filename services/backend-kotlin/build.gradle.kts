@@ -10,7 +10,7 @@ plugins {
 }
 
 allprojects {
-    group = "com.tsypk"
+    group = "com.nmakarov"
     version = "1.0"
 
     repositories {

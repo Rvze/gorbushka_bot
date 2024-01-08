@@ -1,16 +1,3 @@
--- create table bot_user
--- (
---     id         varchar(255),
---     login      varchar(255) UNIQUE CHECK ( length(password) > 7 ),
---     password   varchar(255) CHECK ( length(password) > 7 ),
---     created_at timestamp NOT NULL,
---     PRIMARY KEY (id)
--- );
---
--- alter table bot_user
---     owner to tsypk;
-
--------------------------------------------------------------------------
 
 create table tg_bot_user
 (
