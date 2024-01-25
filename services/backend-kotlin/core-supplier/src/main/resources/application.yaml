@@ -6,6 +6,13 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://c-c9qikb36ojt5s6c7vpfo.rw.mdb.yandexcloud.net:6432/nmakarov
+    url: jdbc:postgresql://rc1b-a91wke62kjgj13zf.mdb.yandexcloud.net:6432/makarov-n?targetServerType=master&currentSchema=rbdip
     username: nmakarov
-    password: 15.Aleksei
+    password: makarovnurgun
+  data:
+    redis:
+      channels:
+        stuff_update_channel:
+          name: stuff_update_channel
+      host: master_redis
+      port: 6379

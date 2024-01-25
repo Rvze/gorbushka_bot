@@ -45,6 +45,10 @@ fun Iphone.idString(): String {
     return "${model.name}/${memory.name}/${color.name}"
 }
 
+fun Iphone.idStringWithCountry(): String {
+    return "${model.name}/${memory.name}/${color.name}/${country.name}"
+}
+
 fun IphoneFullModel.idString(): String {
     return "${model.name}/${memory.name}/${color.name}"
 }

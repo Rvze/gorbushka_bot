@@ -3,12 +3,10 @@ package com.nmakarov.coreclient.service.stat
 import com.nmakarov.coreclient.model.stat.StatRegistry
 import com.nmakarov.coreclient.repository.StatRepository
 import com.nmakarov.coreclient.util.localDateNowMoscow
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Profile
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.time.LocalDate
 import java.time.Month
@@ -22,8 +20,6 @@ class StatisticsServiceTest {
     val getAllStatisticsEnabled = false
 
     @Test
-    @Profile("test")
-    @Disabled
     fun getAllStatistics() {
         if (getAllStatisticsEnabled) {
             val from = LocalDate.of(2023, Month.FEBRUARY, 28)
@@ -32,8 +28,8 @@ class StatisticsServiceTest {
             val result = statRepository.getAllWithin(from, to)
             println(
                 "дата, пользователей всего, уникальных пользователей, новых пользователей, сообщений в поиске, " +
-                    "запросов на поиск, айфонов распознано, айфонов найдено, сообщений в поставщике, обновлений прайс-листа, " +
-                    "айфонов распознано у поставщиков, поставщики обновляющие прайс лист"
+                        "запросов на поиск, айфонов распознано, айфонов найдено, сообщений в поставщике, обновлений прайс-листа, " +
+                        "айфонов распознано у поставщиков, поставщики обновляющие прайс лист"
             )
             result.sortedBy { it.atDate }.forEach {
                 println(csvLine(it.atDate, it.statRegistry))

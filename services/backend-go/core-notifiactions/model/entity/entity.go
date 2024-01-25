@@ -1,37 +1,70 @@
 package entity
 
-type ModelType int
-type Country int
-type EventType int
+import "time"
+
+type StuffUpdateType string
 
 const (
-	IPHONE  ModelType = 0
-	AIRPODS ModelType = 1
+	DELETE StuffUpdateType = "DELETE"
+	CREATE StuffUpdateType = "CREATE"
+	UPDATE StuffUpdateType = "UPDATE"
 )
+
+type StuffType string
 
 const (
-	USA    Country = 0
-	RUSSIA Country = 1
+	IPHONE  StuffType = "IPHONE"
+	AIRPODS StuffType = "AIRPODS"
+	MACBOOK StuffType = "MACBOOK"
 )
+
+type Country string
 
 const (
-	DELETE EventType = 0
-	INSERT EventType = 1
-	UPDATE EventType = 2
-	GET    EventType = 3
+	USA    = "USA"
+	RUSSIA = "RUSSIA"
 )
 
-type Event struct {
-	ModelType
-	ModelId  string
-	Supplier string
-	Country
-	Price string
-	EventType
+type PriceUpdate struct {
+	OldPrice int64 `json:"old_price"`
+	NewPrice int64 `json:"new_price"`
 }
 
-type Subscribe struct {
-	ChatId int
-	ModelType
-	ModelId string
+type StuffUpdateEvent struct {
+	StuffUpdateType StuffUpdateType `json:"type"`
+	ModelId         string          `json:"model_id"`
+	Payload         *PriceUpdate    `json:"payload"`
+}
+
+type StuffUpdateEventsBatch struct {
+	Events []StuffUpdateEvent `json:"updates"`
+}
+
+type NotificationSubscription struct {
+	Id               int64
+	UserId           int64
+	ModelId          string
+	SubscriptionType string
+}
+
+type Notification struct {
+	Id             int64
+	UserId         int64
+	SubscriptionId *int64
+	Text           string
+	Status         string
+	ReadAt         *time.Time
+	CreatedAt      time.Time
+}
+
+func NewNotification(userId int64, subscriptionId *int64, text string) *Notification {
+	return &Notification{
+		Id:             0,
+		UserId:         userId,
+		SubscriptionId: subscriptionId,
+		Text:           text,
+		Status:         "NEW",
+		ReadAt:         nil,
+		CreatedAt:      time.Now(),
+	}
 }

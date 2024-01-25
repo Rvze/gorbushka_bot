@@ -3,42 +3,42 @@ package app
 import (
 	"context"
 	"corenotif/config"
-	"corenotif/controller"
 	"corenotif/database"
+	"corenotif/message"
 	"corenotif/redis"
 	"corenotif/service"
-	"corenotif/telegram/client"
-	"corenotif/telegram/processor"
 	"fmt"
 	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-const tgBotHost = "api.telegram.org"
-
 func Start() {
 	config.InitConfig()
-	tgClient := client.New(tgBotHost, config.GetTgToken())
-	tgProcessor := processor.New(tgClient)
-	repository := database.NewRepository(initDB())
-	serviceInstance := service.GetService(tgProcessor, repository)
-	subscriber := service.GetSubscribeService(repository)
-	controllerInstance := controller.GetController(subscriber)
-	redisInstance := redis.GetRedis(1, 100, serviceInstance)
-
-	controllerInstance.Start()
+	messageProcessor := message.New()
+	db := database.NewRepository(initDB())
+	notificationService := service.GetService(db, messageProcessor)
+	redisInstance := redis.GetRedis(
+		1, 100,
+		1, 100,
+		notificationService,
+	)
 	redisInstance.Start()
-	serviceInstance.Start()
 }
 
 func initDB() *pgxpool.Pool {
-	dbUrl := "postgres://" + config.GetDBUser() + ":" + config.GetDBPassword() + "@" + config.GetDBHost() + ":" + config.GetDBPort() + "/nmakarov"
-	pool, err := pgxpool.Connect(context.Background(), dbUrl)
+	dbUrl := "postgres://" + "nmakarov" + ":" + "makarovnurgun" + "@" + "rc1b-a91wke62kjgj13zf.mdb.yandexcloud.net" + ":" + "6432" + "/makarov-n?search_path=rbdip"
+	config, err := pgxpool.ParseConfig(dbUrl)
 	if err != nil {
-		_, err := fmt.Fprintf(os.Stderr, "Unnable to connect to database: %v\n", err)
-		if err != nil {
-		}
+		fmt.Fprintf(os.Stderr, "Unnable to parse config: %v\n", err)
+		os.Exit(1)
+	}
+
+	config.MaxConns = 1
+
+	pool, err := pgxpool.ConnectConfig(context.Background(), config)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unnable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
 

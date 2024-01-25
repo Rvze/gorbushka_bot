@@ -18,6 +18,7 @@ import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.extensions.api.send.sendMessage
 import dev.inmo.tgbotapi.extensions.behaviour_builder.buildBehaviourWithLongPolling
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onCommand
+import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onCommandWithArgs
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onText
 import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.message.HTMLParseMode
@@ -39,8 +40,8 @@ class ResellerBotApplication(
 
     companion object {
         val commands = setOf(
-            "/start", "/help", "/support", "/buy", "/subscription_info",
-            "start", "help", "support", "buy", "subscription_info",
+            "/start", "/help", "/support", "/buy", "/subscription_info", "/subscribe",
+            "start", "help", "support", "buy", "subscription_info", "subscribe",
         )
     }
 
@@ -89,7 +90,14 @@ class ResellerBotApplication(
                     resellerBotFlowService.onSubscriptionInfoCommand(this, msg)
                 }
             }
-            onText(initialFilter = { it.content.text.trim() !in commands }) { msg ->
+            onCommandWithArgs(
+                command = "subscribe",
+                initialFilter = { it.content.text.trim() !in commands }) { msg, _ ->
+                withErrorHandling(this, msg) {
+                    resellerBotFlowService.onSubscribeOnItemCommand(this, msg)
+                }
+            }
+            onText(initialFilter = { it.content.textSources[0].source !in commands }) { msg ->
                 withErrorHandling(this, msg) {
                     withSubscriptionChecks(msg) { _, _, _ ->
                         resellerBotFlowService.onPotentialSearchQuery(

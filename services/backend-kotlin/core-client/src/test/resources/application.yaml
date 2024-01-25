@@ -1,16 +1,16 @@
+SUPPLIER_PORT: 8084
+PORT: 8085
 server:
-  port: 8082
+  port: ${PORT}
 
 spring:
-  profiles:
-    active: "test"
   main:
     allow-bean-definition-overriding: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://c-c9qikb36ojt5s6c7vpfo.rw.mdb.yandexcloud.net:6432/nmakarov
+    url: jdbc:postgresql://rc1b-a91wke62kjgj13zf.mdb.yandexcloud.net:6432/makarov-n?targetServerType=master&ssl=true&sslmode=verify-full&currentSchema=rbdip
     username: nmakarov
-    password: 15.Aleksei
+    password: makarovnurgun
   cloud:
     openfeign:
       client:
@@ -23,20 +23,20 @@ spring:
 telegram:
   gorbushka:
     # RESELLER
-    #  t.me/theonlyonerf_bot
-    reseller-token: 5631332290:AAEwDbDLhEjaKTf2LLUu0_-1EafMll-zkJI
+    #  dev: https://t.me/gotbushka_dev_bot
+    reseller-token: 5983342496:AAHYn3lJYz41_RZorCqALMeO6gJKmFgkLpI
 
     #SUPPLIER
-    # t.me/theonlyonerf_supplier_bot
-    supplier-token: 5694874985:AAGT94eiv4n36FKSY9Ja8mE1s9_u5VDOgtU
+    # dev: https://t.me/gorbushka_supplier_dev_bot
+    supplier-token: 6290579073:AAGP8ucmWx6-IvG-Wh4Ws7SPui8XpqF5kEM
 
     # ADMIN
-    # t.me/TheOneAndOnlyAdminBot
-    admin-token: 5602093970:AAGBvsneVGoT9-HBfvlvXt272WV7x04jSWk
+    # dev: https://t.me/gorbushka_admin_dev_bot
+    admin-token: 6180125391:AAHoYg-jIjLy0Qvhs8F8bOT6QPbHYqyQ95Y
 
 clients:
   core-supplier:
-    url: http://localhost:8081
+    url: http://localhost:${SUPPLIER_PORT}
 
 feature-flags:
-  notify-admins.enabled: false
+  notify-admins.enabled: true

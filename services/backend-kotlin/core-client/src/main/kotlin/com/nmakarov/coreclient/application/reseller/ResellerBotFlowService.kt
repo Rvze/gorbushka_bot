@@ -1,5 +1,7 @@
 package com.nmakarov.coreclient.application.reseller
 
+import com.nmakarov.coreclient.api.feign.dto.notification.NotificationActionType
+import com.nmakarov.coreclient.api.feign.dto.notification.NotificationRequest
 import com.nmakarov.coreclient.exception.MaxRequestsExceededException
 import com.nmakarov.coreclient.exception.RecognitionException
 import com.nmakarov.coreclient.exception.SubscriptionNotFoundException
@@ -8,6 +10,7 @@ import com.nmakarov.coreclient.model.stuff.SearchResult
 import com.nmakarov.coreclient.service.RecognitionResultEnrichmentService
 import com.nmakarov.coreclient.service.StuffRecognitionService
 import com.nmakarov.coreclient.service.SubscriptionMgmtService
+import com.nmakarov.coreclient.service.client.NotificationClientService
 import com.nmakarov.coreclient.service.client.SupplierAirPodsClientService
 import com.nmakarov.coreclient.service.enrichment.UsernamesEnricher
 import com.nmakarov.coreclient.service.presenting.apple.airPodsGroupByConcreteModelAndCountryAndSortedByPrice
@@ -15,6 +18,7 @@ import com.nmakarov.coreclient.service.presenting.apple.iphonesGroupByConcreteMo
 import com.nmakarov.coreclient.service.presenting.apple.macbooksGroupByConcreteModelAndCountryAndSortedByPrice
 import com.nmakarov.coreclient.service.stat.StatisticsService
 import com.nmakarov.coreclient.util.telegram.Messages
+import com.nmakarov.coreclient.util.telegram.messageUpdateFromTelegramMessage
 import com.nmakarov.coreclient.util.toSingleString
 import dev.inmo.tgbotapi.extensions.api.send.sendMessage
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
@@ -27,6 +31,8 @@ import recognitioncommons.models.apple.airpods.AirPods
 import recognitioncommons.models.apple.iphone.Iphone
 import recognitioncommons.models.apple.macbook.Macbook
 import recognitioncommons.service.recognition.apple.airpods.AirPodsRecognitionService
+import recognitioncommons.util.idStringWithCountry
+import recognitioncommons.util.idString
 
 @Service
 class ResellerBotFlowService(
@@ -35,6 +41,7 @@ class ResellerBotFlowService(
     private val stuffRecognitionService: StuffRecognitionService,
     private val recognitionResultEnrichmentService: RecognitionResultEnrichmentService,
     private val airPodsClientService: SupplierAirPodsClientService,
+    private val notificationClientService: NotificationClientService,
     private val statisticsService: StatisticsService,
 ) {
     private companion object {
@@ -85,6 +92,63 @@ class ResellerBotFlowService(
 
         val found = recognitionResultEnrichmentService.enrichForRecognitionResult(recognized)
         enrichAndAnswer(ctx, msg, found)
+    }
+
+    suspend fun onSubscribeOnItemCommand(
+        ctx: BehaviourContext,
+        msg: CommonMessage<MessageContent>,
+    ) {
+        //TODO
+        val text = msg.content.textContentOrNull()!!.text
+        val item = text.replace("/subscribe ", "")
+        val recognized = stuffRecognitionService.recognizeSearchModels(item)
+
+        if (recognized.allEmpty()) {
+            throw RecognitionException(errorMsg = recognized.errors.toSingleString())
+        }
+        if (recognized.totalRecognized() > MAX_REQUESTS) {
+            throw MaxRequestsExceededException(MAX_REQUESTS)
+        }
+        val found = recognitionResultEnrichmentService.enrichForRecognitionResult(recognized)
+        val msgUpdate = messageUpdateFromTelegramMessage(msg)
+        enrichAndSend(msgUpdate.sender!!.id, found)
+    }
+
+    private suspend fun enrichAndSend(userId: Long, searchResult: SearchResult) {
+        if (searchResult.iphones.isNotEmpty()) {
+            searchResult.iphones.forEach {
+                notificationClientService.subscribeOnItem(
+                    userId,
+                    NotificationRequest(
+                        actionType = NotificationActionType.SUBSCRIBE,
+                        modelId = it.idStringWithCountry()
+                    )
+                )
+            }
+        }
+        if (searchResult.airPods.isNotEmpty()) {
+            searchResult.airPods.forEach {
+                notificationClientService.subscribeOnItem(
+                    userId,
+                    NotificationRequest(
+                        actionType = NotificationActionType.SUBSCRIBE,
+                        modelId = it.idString()
+                    )
+                )
+            }
+        }
+        if (searchResult.macbooks.isNotEmpty()) {
+            searchResult.macbooks.forEach {
+                notificationClientService.subscribeOnItem(
+                    userId,
+                    NotificationRequest(
+                        actionType = NotificationActionType.SUBSCRIBE,
+                        modelId = it.idString()
+                    )
+                )
+            }
+        }
+
     }
 
     private suspend fun enrichAndAnswer(

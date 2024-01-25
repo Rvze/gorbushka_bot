@@ -13,7 +13,6 @@ class CoreSupplierApplicationTests {
     lateinit var supplierStaffService: SupplierStaffService
 
     @Test
-    @Disabled
     fun contextLoads() {
         supplierStaffService.getStaffInfo().forEach {
             println(it)

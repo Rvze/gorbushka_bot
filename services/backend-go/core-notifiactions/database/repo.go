@@ -10,69 +10,83 @@ import (
 )
 
 type Repository interface {
-	Insert(chatId int, modelType entity.ModelType, modelId string) error
-	GetAllByModelTypeAndModelId(modelType entity.ModelType, modelId string) ([]int, error)
-	Delete(chatId int) error
+	Insert(notification *entity.Notification) error
+	GetAllByModelId(modelId string) ([]entity.NotificationSubscription, error)
 }
 
-type repository struct {
+type NotificationSubscriptionRepository struct {
 	pool *pgxpool.Pool
 }
 
 func NewRepository(pool *pgxpool.Pool) Repository {
 	defer func() {
-		log.Log(log.SUCCESS, "repository set")
+		log.Log(log.SUCCESS, "NotificationSubscriptionRepository set")
 	}()
-	return &repository{
+
+	return &NotificationSubscriptionRepository{
 		pool: pool,
 	}
 }
 
-func (r *repository) Insert(chatId int, modelType entity.ModelType, modelId string) error {
+func (r *NotificationSubscriptionRepository) Insert(notification *entity.Notification) error {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
 		return err
 	}
+
 	defer conn.Release()
 
-	_, err = conn.Exec(context.Background(), `
-		INSERT INTO subscription_notify (tg_chat_id, model_id, model_type)
-		VALUES ($1, $2, $3)
-	`, chatId, modelId, modelType)
+	_, err = conn.Exec(
+		context.Background(),
+		`
+			INSERT INTO notification (user_id, subscription_id, text, status, read_at, created_at)
+			VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING;
+		`,
+		notification.UserId,
+		notification.SubscriptionId,
+		notification.Text,
+		notification.Status,
+		notification.ReadAt,
+		notification.CreatedAt,
+	)
 	if err != nil {
 		fmt.Println(log.Err("Error while inserting", err))
 	}
+
 	return err
 }
 
-func (r *repository) GetAllByModelTypeAndModelId(modelType entity.ModelType, modelId string) ([]int, error) {
+func (r *NotificationSubscriptionRepository) GetAllByModelId(modelId string) ([]entity.NotificationSubscription, error) {
 	conn, err := r.pool.Acquire(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
 	defer conn.Release()
-	sql := `
-	SELECT t.tg_chat_id
-	  FROM subscription_notify t
-	 WHERE t.model_type = $1
-	   AND t.model_id = $2`
 
-	rows, err := conn.Query(context.Background(), sql, modelType, modelId)
+	sql := `
+		SELECT *
+		  FROM notification_subscription ns
+		 WHERE ns.entity_id = $1;
+   `
+
+	rows, err := conn.Query(context.Background(), sql, modelId)
 	if err != nil {
 		fmt.Println(log.Err("Error while selecting", err))
 		return nil, err
 	}
+	log.Log(log.INFO, fmt.Sprintf("Exectutet sql - %s entity id - %s", sql, modelId))
+
 	defer rows.Close()
 
-	chatIdSlice := make([]int, 0)
+	subscriptions := make([]entity.NotificationSubscription, 0)
 	for rows.Next() {
-		var tgChatId int
-		if err := rows.Scan(&tgChatId); err != nil {
+		var ns entity.NotificationSubscription
+		if err := rows.Scan(&ns.Id, &ns.UserId, &ns.ModelId, &ns.SubscriptionType); err != nil {
 			fmt.Println(log.Err("Error while scanning rows", err))
 			return nil, err
 		}
-		chatIdSlice = append(chatIdSlice, tgChatId)
+		subscriptions = append(subscriptions, ns)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -80,24 +94,5 @@ func (r *repository) GetAllByModelTypeAndModelId(modelType entity.ModelType, mod
 		return nil, err
 	}
 
-	return chatIdSlice, nil
-}
-
-func (r *repository) Delete(chatId int) error {
-
-	conn, err := r.pool.Acquire(context.Background())
-	if err != nil {
-		return err
-	}
-
-	defer conn.Release()
-
-	sql := "DELETE FROM subscription_notify WHERE tg_chat_id=$1"
-
-	_, err = conn.Exec(context.Background(), sql, chatId)
-	if err != nil {
-		return err
-	}
-
-	return err
+	return subscriptions, nil
 }

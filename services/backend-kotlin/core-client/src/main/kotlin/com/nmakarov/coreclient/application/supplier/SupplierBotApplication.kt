@@ -40,7 +40,7 @@ class SupplierBotApplication(
 ) : com.nmakarov.coreclient.application.BotApplication {
 
     companion object {
-        val commands = setOf("/start", "/help", "start", "help")
+        val commands = setOf("/start", "/help", "start", "help", "/subscribe", "subscribe")
     }
 
     override suspend fun listenMessages() {

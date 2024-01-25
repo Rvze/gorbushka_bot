@@ -12,7 +12,7 @@ object TelegramInfo {
     }
 
     object Support {
-        const val username = "@romanmedvedev93"
+        const val username = "@rvzed"
     }
 
     object Channel {

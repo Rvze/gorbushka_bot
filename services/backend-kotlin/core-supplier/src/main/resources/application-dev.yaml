@@ -1,11 +1,18 @@
 server:
-  port: 8084
+  port: 8081
 
 spring:
   main:
     allow-bean-definition-overriding: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://rc1b-a91wke62kjgj13zf.mdb.yandexcloud.net:6432/makarov-n?targetServerType=master&ssl=true&sslmode=verify-full&currentSchema=rbdip
+    url: jdbc:postgresql://rc1b-a91wke62kjgj13zf.mdb.yandexcloud.net:6432/makarov-n?targetServerType=master&currentSchema=rbdip
     username: nmakarov
     password: makarovnurgun
+  data:
+    redis:
+      channels:
+        stuff_update_channel:
+          name: stuff_update_channel
+      host: master_redis
+      port: 6379

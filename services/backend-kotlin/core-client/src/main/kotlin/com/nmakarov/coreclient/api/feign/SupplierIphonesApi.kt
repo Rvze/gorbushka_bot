@@ -1,5 +1,6 @@
 package com.nmakarov.coreclient.api.feign
 
+import com.nmakarov.coreclient.api.feign.dto.iphone.IphonesBotUserUpdateRequest
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -12,7 +13,7 @@ interface SupplierIphonesApi {
         produces = ["application/json"],
         consumes = ["application/json"],
     )
-    fun v1IphonesBotUserUpdate(@RequestBody request: com.nmakarov.coreclient.api.feign.dto.iphone.IphonesBotUserUpdateRequest): ResponseEntity<Unit>
+    fun v1IphonesBotUserUpdate(@RequestBody request: IphonesBotUserUpdateRequest): ResponseEntity<Unit>
 
     @PostMapping(
         value = ["/v1/iphones/find/best"],

@@ -1,5 +1,5 @@
-SUPPLIER_PORT: 8084
-PORT: 8085
+SUPPLIER_PORT: 8081
+PORT: 8082
 server:
   port: ${PORT}
 
@@ -8,7 +8,7 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://rc1b-a91wke62kjgj13zf.mdb.yandexcloud.net:6432/makarov-n?targetServerType=master&ssl=true&sslmode=verify-full&currentSchema=rbdip
+    url: jdbc:postgresql://rc1b-a91wke62kjgj13zf.mdb.yandexcloud.net:6432/makarov-n?targetServerType=master&currentSchema=rbdip
     username: nmakarov
     password: makarovnurgun
   cloud:
@@ -36,7 +36,7 @@ telegram:
 
 clients:
   core-supplier:
-    url: http://localhost:${SUPPLIER_PORT}
+    url: http://core-supplier:${SUPPLIER_PORT}
 
 feature-flags:
   notify-admins.enabled: true

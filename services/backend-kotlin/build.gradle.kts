@@ -45,6 +45,12 @@ subprojects {
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
         implementation("com.google.code.gson:gson:2.9.0")
 
+        /**
+         * Redis
+         */
+        implementation("org.springframework.boot:spring-boot-starter-data-redis")
+        implementation("redis.clients:jedis:4.3.2")
+
         runtimeOnly("org.postgresql:postgresql")
 
         annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

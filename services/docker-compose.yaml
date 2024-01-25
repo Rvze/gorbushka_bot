@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  core-supplier:
+    container_name: core-supplier
+    image: core-supplier:latest
+    ports:
+      - "8081:8081"
+  core-client:
+    container_name: core-client
+    image: core-client:latest
+    ports:
+      - "8082:8082"
+    depends_on:
+      - core-supplier
+  core-notification:
+    container_name: notifications
+    image: notifications:latest
+    ports:
+      - "8083:8080"
+    depends_on:
+      - master_redis
+  master_redis:
+    image: redis/redis-stack:latest
+    hostname: master_redis
+    ports:
+      - "6379:6379"
+    restart: always
+

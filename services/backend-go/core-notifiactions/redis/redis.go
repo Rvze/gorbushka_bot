@@ -1,79 +1,89 @@
 package redis
 
 import (
-	"corenotif/config"
 	"corenotif/log"
-	pb "corenotif/model/proto"
+	"corenotif/model/entity"
 	"corenotif/service"
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
-	"google.golang.org/protobuf/proto"
 )
 
 type Redis struct {
-	workersNum  int
-	service     service.Service
-	client      redis.Client
-	messageChan chan redis.Message
+	stuffUpdatesWorkers int
+	buyRequestsWorkers  int
+	service             service.NotificationService
+	client              redis.Client
+	stuffUpdates        chan redis.Message
+	buyRequests         chan redis.Message
 }
 
-func GetRedis(workersNum, chanCap int, service service.Service) *Redis {
+func GetRedis(stuffUpdatesWorkers, stuffUpdatesCap int, buyRequestsWorkers, buyRequestsCap int, service service.NotificationService) *Redis {
 	defer func() {
 		log.Log(log.SUCCESS, "Redis Client was set")
 	}()
+
 	return &Redis{
-		workersNum: workersNum,
-		service:    service,
+		stuffUpdatesWorkers: stuffUpdatesWorkers,
+		buyRequestsWorkers:  buyRequestsWorkers,
+		service:             service,
 		client: *redis.NewClient(&redis.Options{
-			Addr:     config.GetRedisHost() + ":" + config.GetRedisPort(),
+			//Addr: "localhost:6379",
+			Addr:     "master_redis:6379",
 			Password: "",
 			DB:       0,
 		}),
-		messageChan: make(chan redis.Message, chanCap),
+		stuffUpdates: make(chan redis.Message, stuffUpdatesCap),
+		buyRequests:  make(chan redis.Message, buyRequestsCap),
 	}
 }
 
 func (r *Redis) Start() {
-	go r.consume()
-	for i := 0; i < r.workersNum; i++ {
-		go r.process(i)
+	for i := 0; i < r.stuffUpdatesWorkers; i++ {
+		go r.processStuffUpdates(i)
 	}
-}
 
-func (r *Redis) process(gr int) {
-	for {
-		message := <-r.messageChan
-		log.Log(log.INFO, fmt.Sprintf("Gorutine: %d: Got message", gr))
-
-		value := new(pb.Item)
-
-		if err := proto.Unmarshal([]byte(message.Payload), value); err != nil {
-			fmt.Println(log.Err("Can't unmarshal Proto value", err))
-			continue
-		}
-		r.service.Process(value)
-	}
+	r.consume()
 }
 
 func (r *Redis) consume() {
-	pubsub := r.client.Subscribe(config.GetRedisTopic())
-	defer func(pubsub *redis.PubSub) {
-		err := pubsub.Close()
+	redisPubSub := r.client.Subscribe("stuff_update_channel")
+
+	defer func(redisPubSub *redis.PubSub) {
+		err := redisPubSub.Close()
 		if err != nil {
-			fmt.Println(log.Err("Error closing pubsub", err))
+			fmt.Println(log.Err("Error closing redisPubSub", err))
 		}
-	}(pubsub)
+	}(redisPubSub)
 
 	for {
-		message, err := pubsub.ReceiveMessage()
+		msg, err := redisPubSub.ReceiveMessage()
 		if err != nil {
-			fmt.Println(log.Err("Error receiving message from Reddis", err))
-			time.Sleep(10 * time.Second)
+			fmt.Println(log.Err(fmt.Sprintf("Error receiving msg from"), err))
+			time.Sleep(100 * time.Millisecond)
 			continue
 		}
 
-		r.messageChan <- *message
+		switch msg.Channel {
+		case "stuff_update_channel":
+			r.stuffUpdates <- *msg
+	}
+}
+}
+
+func (r *Redis) processStuffUpdates(gr int) {
+	for {
+		message := <-r.stuffUpdates
+		log.Log(log.INFO, fmt.Sprintf("Gorutine: %d: Got stuff updates message", gr))
+
+		value := entity.StuffUpdateEventsBatch{}
+
+		if err := json.Unmarshal([]byte(message.Payload), &value); err != nil {
+			fmt.Println(log.Err("Can't unmarshal json value", err))
+			continue
+		}
+		r.service.ProcessStuffUpdate(value)
 	}
 }
