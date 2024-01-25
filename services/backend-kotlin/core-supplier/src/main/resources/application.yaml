@@ -14,5 +14,6 @@ spring:
       channels:
         stuff_update_channel:
           name: stuff_update_channel
-      host: master_redis
+      host: c9ql43liubfkrg1irsl7
       port: 6379
+      password: password

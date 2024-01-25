@@ -31,8 +31,8 @@ func GetRedis(stuffUpdatesWorkers, stuffUpdatesCap int, buyRequestsWorkers, buyR
 		service:             service,
 		client: *redis.NewClient(&redis.Options{
 			//Addr: "localhost:6379",
-			Addr:     "master_redis:6379",
-			Password: "",
+			Addr:     "c9ql43liubfkrg1irsl7:6379",
+			Password: "password",
 			DB:       0,
 		}),
 		stuffUpdates: make(chan redis.Message, stuffUpdatesCap),
@@ -69,8 +69,8 @@ func (r *Redis) consume() {
 		switch msg.Channel {
 		case "stuff_update_channel":
 			r.stuffUpdates <- *msg
+		}
 	}
-}
 }
 
 func (r *Redis) processStuffUpdates(gr int) {
