@@ -21,11 +21,11 @@ interface NotificationsApi {
     fun getSupplierStuffFromId(@RequestHeader("UserID") userId: Long): ResponseEntity<List<NotificationDto>>
 
     @GetMapping(
-        value = ["v1/notification/subscription/list"],
+        value = ["v1/notification/list"],
         produces = ["application/json"],
         consumes = ["application/json"]
     )
-    fun getNotificationSubscriptions(@RequestHeader("UserID") userId: Long): ResponseEntity<List<NotificationSubscriptionDto>>
+    fun getNotificationSubscriptions(@RequestHeader("UserID") userId: Long): ResponseEntity<List<NotificationDto>>
 
     @PostMapping(
         value = ["v1/notification/stuff"],

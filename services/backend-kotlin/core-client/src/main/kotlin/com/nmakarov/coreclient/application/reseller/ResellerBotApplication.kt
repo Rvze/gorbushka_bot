@@ -30,18 +30,18 @@ import org.springframework.stereotype.Service
 
 @Service
 class ResellerBotApplication(
-    private val resellerBot: TelegramBot,
-    private val resellerBotFlowService: ResellerBotFlowService,
-    private val subscriptionMgmtService: SubscriptionMgmtService,
-    private val subscriptionFactory: SubscriptionFactory,
-    private val userMgmtService: UserMgmtService,
-    private val statisticsService: StatisticsService,
+        private val resellerBot: TelegramBot,
+        private val resellerBotFlowService: ResellerBotFlowService,
+        private val subscriptionMgmtService: SubscriptionMgmtService,
+        private val subscriptionFactory: SubscriptionFactory,
+        private val userMgmtService: UserMgmtService,
+        private val statisticsService: StatisticsService,
 ) : com.nmakarov.coreclient.application.BotApplication {
 
     companion object {
         val commands = setOf(
-            "/start", "/help", "/support", "/buy", "/subscription_info", "/subscribe",
-            "start", "help", "support", "buy", "subscription_info", "subscribe",
+                "/start", "/help", "/support", "/buy", "/subscription_info", "/subscribe",
+                "start", "help", "support", "buy", "subscription_info", "subscribe",
         )
     }
 
@@ -50,9 +50,9 @@ class ResellerBotApplication(
             onCommand("start") { msg ->
                 withErrorHandling(this, msg) {
                     resellerBot.sendMessage(
-                        chat = msg.chat,
-                        text = Messages.RESELLER.startCommand,
-                        parseMode = HTMLParseMode,
+                            chat = msg.chat,
+                            text = Messages.RESELLER.startCommand,
+                            parseMode = HTMLParseMode,
                     )
                 }
             }
@@ -60,8 +60,8 @@ class ResellerBotApplication(
                 withErrorHandling(this, msg) {
                     withSubscriptionChecks(msg) { _, _, _ ->
                         resellerBot.sendMessage(
-                            chat = msg.chat,
-                            text = Messages.RESELLER.helpCommand,
+                                chat = msg.chat,
+                                text = Messages.RESELLER.helpCommand,
                         )
 
                     }
@@ -71,8 +71,8 @@ class ResellerBotApplication(
                 withErrorHandling(this, msg) {
                     withSubscriptionChecks(msg) { _, _, _ ->
                         resellerBot.sendMessage(
-                            chat = msg.chat,
-                            text = Messages.COMMAND.support,
+                                chat = msg.chat,
+                                text = Messages.COMMAND.support,
                         )
                     }
                 }
@@ -80,8 +80,8 @@ class ResellerBotApplication(
             onCommand("buy") { msg ->
                 withErrorHandling(this, msg) {
                     resellerBot.sendMessage(
-                        chat = msg.chat,
-                        text = Messages.SUBSCRIPTION.subscriptionNotReadyYet,
+                            chat = msg.chat,
+                            text = Messages.SUBSCRIPTION.subscriptionNotReadyYet,
                     )
                 }
             }
@@ -91,18 +91,23 @@ class ResellerBotApplication(
                 }
             }
             onCommandWithArgs(
-                command = "subscribe",
-                initialFilter = { it.content.text.trim() !in commands }) { msg, _ ->
+                    command = "subscribe",
+                    initialFilter = { it.content.text.trim() !in commands }) { msg, _ ->
                 withErrorHandling(this, msg) {
                     resellerBotFlowService.onSubscribeOnItemCommand(this, msg)
+                }
+            }
+            onCommand("notifications") { msg ->
+                withErrorHandling(this, msg) {
+                    resellerBotFlowService.onNotificationsCommand(ctx = this, msg)
                 }
             }
             onText(initialFilter = { it.content.textSources[0].source !in commands }) { msg ->
                 withErrorHandling(this, msg) {
                     withSubscriptionChecks(msg) { _, _, _ ->
                         resellerBotFlowService.onPotentialSearchQuery(
-                            ctx = this,
-                            msg = msg,
+                                ctx = this,
+                                msg = msg,
                         )
                     }
                 }
@@ -112,12 +117,12 @@ class ResellerBotApplication(
     }
 
     private suspend fun withSubscriptionChecks(
-        msg: CommonMessage<MessageContent>,
-        action: suspend (
-            msgUpdate: MessageUpdate,
-            tgBotUser: TgBotUser,
-            subscription: Subscription,
-        ) -> Unit,
+            msg: CommonMessage<MessageContent>,
+            action: suspend (
+                    msgUpdate: MessageUpdate,
+                    tgBotUser: TgBotUser,
+                    subscription: Subscription,
+            ) -> Unit,
     ) {
         // STAT
         statisticsService.newMessage(msg.chat.id.chatId, ClientType.RESELLER)
@@ -146,23 +151,23 @@ class ResellerBotApplication(
     private suspend fun processSubscription(tgBotUser: TgBotUser): Subscription {
         val subscription = try {
             subscriptionMgmtService.findOne(
-                tgBotUserId = tgBotUser.id,
-                clientType = ClientType.RESELLER,
+                    tgBotUserId = tgBotUser.id,
+                    clientType = ClientType.RESELLER,
             )
         } catch (e: SubscriptionNotFoundException) {
             val newSubscription = subscriptionFactory.betaTestResellerSubscription(
-                tgBotUserId = tgBotUser.id,
+                    tgBotUserId = tgBotUser.id,
             ) ?: subscriptionFactory.subscriptionForDays(
-                tgBotUserId = tgBotUser.id,
-                clientType = ClientType.RESELLER,
-                type = SubscriptionType.RESELLER_DEMO,
+                    tgBotUserId = tgBotUser.id,
+                    clientType = ClientType.RESELLER,
+                    type = SubscriptionType.RESELLER_DEMO,
             )
 
             subscriptionMgmtService.createOrUpdate(newSubscription)
 
             resellerBot.sendMessage(
-                chatId = ChatId(tgBotUser.id),
-                text = Messages.SUBSCRIPTION.subscriptionInfo(newSubscription),
+                    chatId = ChatId(tgBotUser.id),
+                    text = Messages.SUBSCRIPTION.subscriptionInfo(newSubscription),
             )
 
             newSubscription

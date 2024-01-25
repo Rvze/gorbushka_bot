@@ -36,47 +36,47 @@ import recognitioncommons.util.idString
 
 @Service
 class ResellerBotFlowService(
-    private val usernamesEnricher: UsernamesEnricher,
-    private val subscriptionMgmtService: SubscriptionMgmtService,
-    private val stuffRecognitionService: StuffRecognitionService,
-    private val recognitionResultEnrichmentService: RecognitionResultEnrichmentService,
-    private val airPodsClientService: SupplierAirPodsClientService,
-    private val notificationClientService: NotificationClientService,
-    private val statisticsService: StatisticsService,
+        private val usernamesEnricher: UsernamesEnricher,
+        private val subscriptionMgmtService: SubscriptionMgmtService,
+        private val stuffRecognitionService: StuffRecognitionService,
+        private val recognitionResultEnrichmentService: RecognitionResultEnrichmentService,
+        private val airPodsClientService: SupplierAirPodsClientService,
+        private val notificationClientService: NotificationClientService,
+        private val statisticsService: StatisticsService,
 ) {
     private companion object {
         const val MAX_REQUESTS = 10
     }
 
     suspend fun onSubscriptionInfoCommand(
-        ctx: BehaviourContext,
-        msg: CommonMessage<MessageContent>,
+            ctx: BehaviourContext,
+            msg: CommonMessage<MessageContent>,
     ) {
         try {
             val subscription = subscriptionMgmtService.findOne(
-                tgBotUserId = msg.chat.id.chatId,
-                clientType = ClientType.RESELLER,
+                    tgBotUserId = msg.chat.id.chatId,
+                    clientType = ClientType.RESELLER,
             )
             ctx.bot.sendMessage(
-                chat = msg.chat,
-                text = Messages.SUBSCRIPTION.subscriptionInfo(subscription),
+                    chat = msg.chat,
+                    text = Messages.SUBSCRIPTION.subscriptionInfo(subscription),
             )
         } catch (e: SubscriptionNotFoundException) {
             ctx.bot.sendMessage(
-                chat = msg.chat,
-                text = Messages.SUBSCRIPTION.noSubscription,
+                    chat = msg.chat,
+                    text = Messages.SUBSCRIPTION.noSubscription,
             )
         }
     }
 
     suspend fun onPotentialSearchQuery(
-        ctx: BehaviourContext,
-        msg: CommonMessage<MessageContent>,
+            ctx: BehaviourContext,
+            msg: CommonMessage<MessageContent>,
     ) {
         val text = msg.content.textContentOrNull()!!.text
         if (AirPodsRecognitionService.isAirPodsWord(text)) {
             val airPodsResult = SearchResult(
-                airPods = airPodsClientService.airPodsGetAll().toMutableList(),
+                    airPods = airPodsClientService.airPodsGetAll().toMutableList(),
             )
             enrichAndAnswer(ctx, msg, airPodsResult)
             return
@@ -95,8 +95,8 @@ class ResellerBotFlowService(
     }
 
     suspend fun onSubscribeOnItemCommand(
-        ctx: BehaviourContext,
-        msg: CommonMessage<MessageContent>,
+            ctx: BehaviourContext,
+            msg: CommonMessage<MessageContent>,
     ) {
         //TODO
         val text = msg.content.textContentOrNull()!!.text
@@ -114,37 +114,54 @@ class ResellerBotFlowService(
         enrichAndSend(msgUpdate.sender!!.id, found)
     }
 
+    suspend fun onNotificationsCommand(ctx: BehaviourContext,
+                                       msg: CommonMessage<MessageContent>) {
+        val msgUpdate = messageUpdateFromTelegramMessage(msg)
+        val found = notificationClientService.getNotifications(msgUpdate.sender!!.id)
+        val response = StringBuilder()
+        found.body!!.forEach {
+            response.append(it.text)
+            response.append("\n")
+        }
+        ctx.bot.sendMessage(
+                chat = msg.chat,
+                text = response.toString(),
+                parseMode = HTMLParseMode
+        )
+
+    }
+
     private suspend fun enrichAndSend(userId: Long, searchResult: SearchResult) {
         if (searchResult.iphones.isNotEmpty()) {
             searchResult.iphones.forEach {
                 notificationClientService.subscribeOnItem(
-                    userId,
-                    NotificationRequest(
-                        actionType = NotificationActionType.SUBSCRIBE,
-                        modelId = it.idStringWithCountry()
-                    )
+                        userId,
+                        NotificationRequest(
+                                actionType = NotificationActionType.SUBSCRIBE,
+                                modelId = it.idStringWithCountry()
+                        )
                 )
             }
         }
         if (searchResult.airPods.isNotEmpty()) {
             searchResult.airPods.forEach {
                 notificationClientService.subscribeOnItem(
-                    userId,
-                    NotificationRequest(
-                        actionType = NotificationActionType.SUBSCRIBE,
-                        modelId = it.idString()
-                    )
+                        userId,
+                        NotificationRequest(
+                                actionType = NotificationActionType.SUBSCRIBE,
+                                modelId = it.idString()
+                        )
                 )
             }
         }
         if (searchResult.macbooks.isNotEmpty()) {
             searchResult.macbooks.forEach {
                 notificationClientService.subscribeOnItem(
-                    userId,
-                    NotificationRequest(
-                        actionType = NotificationActionType.SUBSCRIBE,
-                        modelId = it.idString()
-                    )
+                        userId,
+                        NotificationRequest(
+                                actionType = NotificationActionType.SUBSCRIBE,
+                                modelId = it.idString()
+                        )
                 )
             }
         }
@@ -152,17 +169,17 @@ class ResellerBotFlowService(
     }
 
     private suspend fun enrichAndAnswer(
-        ctx: BehaviourContext,
-        msg: CommonMessage<MessageContent>,
-        found: SearchResult
+            ctx: BehaviourContext,
+            msg: CommonMessage<MessageContent>,
+            found: SearchResult
     ) {
         usernamesEnricher.enrichSupplierUsernames(found)
 
         if (found.allEmpty()) {
             ctx.bot.sendMessage(
-                chat = msg.chat,
-                text = Messages.SEARCH.onEmptySearchResult(),
-                parseMode = HTMLParseMode,
+                    chat = msg.chat,
+                    text = Messages.SEARCH.onEmptySearchResult(),
+                    parseMode = HTMLParseMode,
             )
             return
         }
@@ -173,47 +190,47 @@ class ResellerBotFlowService(
     }
 
     private suspend fun respondIphoneSearchResult(
-        ctx: BehaviourContext,
-        msg: CommonMessage<MessageContent>,
-        iphones: List<Iphone>,
+            ctx: BehaviourContext,
+            msg: CommonMessage<MessageContent>,
+            iphones: List<Iphone>,
     ) {
         statisticsService.newIphonesResponse(iphones.size)
         val sortedIphones = iphonesGroupByConcreteModelAndCountryAndSortedByPrice(iphones)
         sortedIphones.forEach {
             ctx.bot.sendMessage(
-                chat = msg.chat,
-                text = Messages.IPHONE.iphoneBestPricesForSearchModel(it),
-                parseMode = HTMLParseMode,
+                    chat = msg.chat,
+                    text = Messages.IPHONE.iphoneBestPricesForSearchModel(it),
+                    parseMode = HTMLParseMode,
             )
         }
     }
 
     private suspend fun respondAirPodsSearchResult(
-        ctx: BehaviourContext,
-        msg: CommonMessage<MessageContent>,
-        airPods: List<AirPods>,
+            ctx: BehaviourContext,
+            msg: CommonMessage<MessageContent>,
+            airPods: List<AirPods>,
     ) {
         val sortedAirPods = airPodsGroupByConcreteModelAndCountryAndSortedByPrice(airPods)
         sortedAirPods.forEach {
             ctx.bot.sendMessage(
-                chat = msg.chat,
-                text = Messages.AIRPODS.airPodsBestPricesForSearchModel(it),
-                parseMode = HTMLParseMode,
+                    chat = msg.chat,
+                    text = Messages.AIRPODS.airPodsBestPricesForSearchModel(it),
+                    parseMode = HTMLParseMode,
             )
         }
     }
 
     private suspend fun responsMacbooksSearchResult(
-        ctx: BehaviourContext,
-        msg: CommonMessage<MessageContent>,
-        macbooks: List<Macbook>
+            ctx: BehaviourContext,
+            msg: CommonMessage<MessageContent>,
+            macbooks: List<Macbook>
     ) {
         val sortedMacbooks = macbooksGroupByConcreteModelAndCountryAndSortedByPrice(macbooks)
         sortedMacbooks.forEach {
             ctx.bot.sendMessage(
-                chat = msg.chat,
-                text = Messages.MACBOOK.macbooksBestPricesForSearchModel(it),
-                parseMode = HTMLParseMode
+                    chat = msg.chat,
+                    text = Messages.MACBOOK.macbooksBestPricesForSearchModel(it),
+                    parseMode = HTMLParseMode
             )
         }
     }
