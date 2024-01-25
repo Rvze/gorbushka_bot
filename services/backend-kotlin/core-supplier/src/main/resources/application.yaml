@@ -14,6 +14,6 @@ spring:
       channels:
         stuff_update_channel:
           name: stuff_update_channel
-      host: c9ql43liubfkrg1irsl7
-      port: 6379
+      host: c-c9qa994rt09mptasmkg9.rw.mdb.yandexcloud.net
+      port: 6380
       password: password

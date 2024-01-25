@@ -31,7 +31,7 @@ func GetRedis(stuffUpdatesWorkers, stuffUpdatesCap int, buyRequestsWorkers, buyR
 		service:             service,
 		client: *redis.NewClient(&redis.Options{
 			//Addr: "localhost:6379",
-			Addr:     "rc1a-85pgddbeqm81683g.mdb.yandexcloud.net:26379",
+			Addr:     "c-c9qa994rt09mptasmkg9.rw.mdb.yandexcloud.net:6380",
 			Password: "password",
 			DB:       0,
 		}),
